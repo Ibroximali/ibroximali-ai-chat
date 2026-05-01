@@ -22,12 +22,12 @@ else:
 genai.configure(api_key=api_key)
 # Ro'yxatdagi eng yangi va kuchli modelni tanlaymiz
 # Modelni sozlash va tizim yo'riqnomasini berish
-# Modelni mavjud bo'lgan nom bilan sozlash (gemini-2.5-flash)
+# Modelni mavjud bo'lgan nom bilan sozlash (gemini-2.0-flash)
 # Modelni to'g'ri nom bilan sozlash
 # Model nomini to'liq yo'l bilan ko'rsatish
 # Hozirgi eng yangi va barqaror model
 model = genai.GenerativeModel(
-    model_name='gemini-2.5-flash',
+    model_name='gemini-2.0-flash',
     system_instruction="Assalomu alaykum! Men Ibroximali Soliyev tomonidan yaratilgan yordamchiman."
 )
 
