@@ -9,8 +9,17 @@ st.title("🤖 Mening Shaxsiy AI Yordamchim")
 # API kalitni sozlash
 # DIQQAT: O'zingiz olgan kalitni shu yerga qo'ying
 os.environ["GOOGLE_API_KEY"] = "AIzaSyCgcmVnTNgrve3sQEQNjBS51FdKrL8QD1s"
-genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+import streamlit as st
+import google.generativeai as genai
 
+# Streamlit Secrets-dan kalitni xavfsiz o'qib olish
+if "GOOGLE_API_KEY" in st.secrets:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+else:
+    st.error("API kalit topilmadi! Iltimos, Secrets bo'limini tekshiring.")
+    st.stop()
+
+genai.configure(api_key=api_key)
 # Ro'yxatdagi eng yangi va kuchli modelni tanlaymiz
 model = genai.GenerativeModel('gemini-2.5-flash')
 
