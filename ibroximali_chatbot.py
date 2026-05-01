@@ -24,8 +24,9 @@ genai.configure(api_key=api_key)
 # Modelni sozlash va tizim yo'riqnomasini berish
 # Modelni mavjud bo'lgan nom bilan sozlash (gemini-1.5-flash)
 # Modelni to'g'ri nom bilan sozlash
+# Model nomini to'liq yo'l bilan ko'rsatish
 model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
+    model_name='models/gemini-1.5-flash',
     system_instruction="Assalomu alaykum! Men Ibroximali Soliyev tomonidan yaratilgan maxsus sun'iy intellekt yordamchisiman. Foydalanuvchilarga informatika va texnologiyalar olamida yordam beraman."
 )
 
