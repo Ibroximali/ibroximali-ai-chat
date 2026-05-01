@@ -21,7 +21,11 @@ else:
 
 genai.configure(api_key=api_key)
 # Ro'yxatdagi eng yangi va kuchli modelni tanlaymiz
-model = genai.GenerativeModel('gemini-2.5-flash')
+# Modelni sozlash va tizim yo'riqnomasini berish
+model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+    system_instruction="Assalomu alaykum! Men Ibroximali Soliyev tomonidan yaratilgan maxsus sun'iy intellekt yordamchisiman. Foydalanuvchilarga informatika va texnologiyalar olamida yordam beraman."
+)
 
 # AI javobini olish qismini ham biroz o'zgartiramiz
 if prompt := st.chat_input("Savol bering..."):
