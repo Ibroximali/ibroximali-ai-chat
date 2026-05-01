@@ -12,8 +12,8 @@ else:
     st.error("API kalit topilmadi! Streamlit Secrets-ni tekshiring.")
     st.stop()
 
-#  v1beta versiyasi uchun eng mos keladigan yozuv
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+#  Sizda ishlagan model nomiga qaytamiz
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Chat tarixi
 if "messages" not in st.session_state:
