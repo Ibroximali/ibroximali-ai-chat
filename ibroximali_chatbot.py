@@ -59,8 +59,8 @@ else:
     st.error("API kalit topilmadi!")
     st.stop()
 
-# Modelni tanlash (1.5-flash bepul limit uchun eng yaxshisi)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Modelni tanlash (2.5-flash bepul limit uchun eng yaxshisi)
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # 5. Chat tarixini ko'rsatish
 for message in st.session_state.messages:
