@@ -1,2 +1,4 @@
-streamlit
 google-generativeai
+pypdf
+streamlit-mic-recorder
+Pillow
