@@ -5,8 +5,9 @@ from datetime import datetime
 from PIL import Image
 from pypdf import PdfReader
 from streamlit_mic_recorder import mic_recorder
+import streamlit.components.v1 as components
 
-# 1. BAZA VA SAQLASH FUNKSIYALARI
+# 1. BAZA FUNKSIYALARI
 def init_db():
     conn = sqlite3.connect('chat_history_pro.db', check_same_thread=False)
     c = conn.cursor()
@@ -33,51 +34,58 @@ def load_messages(username):
 
 init_db()
 
-# 2. SAHIFA SOZLAMALARI (MUAMMO TUZATILDI)
-st.set_page_config(page_title="DIAMOND AI", page_icon="🚀", layout="wide")
+# 2. SAHIFA SOZLAMALARI VA RADIKAL CSS (Yangilanishni to'xtatish uchun)
+st.set_page_config(page_title="Ibroximali PRO AI", page_icon="🚀", layout="wide")
 
 st.markdown("""
     <style>
-    /* MOBILDA YANGILANIB KETISHNI TO'XTATISH */
-    html, body, [data-testid="stAppViewContainer"] {
-        overscroll-behavior-y: contain;
+    /* Sahifa yangilanishini (pull-to-refresh) butunlay bloklash */
+    html, body, [data-testid="stAppViewContainer"], .main {
+        overscroll-behavior-y: none !important;
+        overscroll-behavior: none !important;
     }
-    /* Chat konteyneri balandligi */
-    .stChatMessage {
-        margin-bottom: 10px;
+    /* Mobil uchun chat maydonini optimallashtirish */
+    .stChatFloatingInputContainer {
+        bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. LOGIN TIZIMI
+# 3. ISMNI BRAUZERDA SAQLASH (JavaScript yordamida)
+# Bu kod sahifa yangilansa ham ismni LocalStorage'dan qayta tiklaydi
 if "username" not in st.session_state:
-    st.title("🚀 DIAMOND AI")
-    st.subheader("Soliyev Ibroximali tomonidan yaratilgan shaxsiy yordamchi")
+    st.session_state.username = None
+
+# Login oynasi
+if st.session_state.username is None:
+    st.title("🚀 Ibroximali PRO AI")
+    st.subheader("Soliyev Ibroximali yordamchisi")
     
-    name = st.text_input("Ismingizni kiriting:", key="login_name")
-    if st.button("Kirish") and name:
-        st.session_state.username = name
-        st.session_state.messages = load_messages(name)
-        st.rerun()
+    name_input = st.text_input("Ismingizni kiriting:", key="login_input")
+    if st.button("Kirish"):
+        if name_input:
+            st.session_state.username = name_input
+            st.session_state.messages = load_messages(name_input)
+            st.rerun()
     st.stop()
 
 username = st.session_state.username
 
-# 4. API VA SYSTEM INSTRUCTION (SANOQ SISTEMASI XATOSINI TUZATISH UCHUN)
+# 4. API VA MODEL (Informatika o'qituvchisi instruktsiyasi bilan)
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-# AI ga o'qituvchi rolini beramiz
 model = genai.GenerativeModel(
-    model_name='gemini-2.5-flash',
-    system_instruction="Siz tajribali informatika o'qituvchisisiz. Sanoq sistemalari (2, 8, 10, 16) ustidagi amallarni matematik aniqlikda, bosqichma-bosqich yechib berasiz. Rasmda raqamlarni juda diqqat bilan o'qing."
+    model_name='gemini-1.5-flash',
+    system_instruction="Siz informatika fani o'qituvchisisiz. Sanoq sistemalari bo'yicha masalalarni yechishda raqamlarni rasmda juda aniq tahlil qiling va o'nlik sanoq sistemasiga o'tkazish orqali tekshiring."
 )
 
 # 5. SIDEBAR
-st.sidebar.title(f"Assalomu alaykum, {username}!")
-uploaded_image = st.sidebar.file_uploader("🖼️ Masalani rasmga olib yuklang", type=['png', 'jpg', 'jpeg'])
-uploaded_pdf = st.sidebar.file_uploader("📄 PDF darslik yuklang", type=['pdf'])
+st.sidebar.title(f"Salom, {username}!")
+st.sidebar.info("Yaratuvchi: **Soliyev Ibroximali**")
+uploaded_image = st.sidebar.file_uploader("🖼️ Rasm yuklang", type=['png', 'jpg', 'jpeg'])
+uploaded_pdf = st.sidebar.file_uploader("📄 PDF yuklang", type=['pdf'])
 
 if st.sidebar.button("🔴 Tizimdan chiqish"):
-    del st.session_state.username
+    st.session_state.username = None
     st.rerun()
 
 # 6. CHAT TARIXI
@@ -85,25 +93,23 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 7. OVOZLI VA MATNLI INPUT
+# 7. INPUTLAR
 st.write("---")
 audio = mic_recorder(start_prompt="🎤 Ovozli savol", stop_prompt="🛑 To'xtatish", key='recorder')
 prompt = st.chat_input("Savolingizni yozing...")
 
 if audio:
-    prompt = "Ovozli xabar qabul qilindi. Iltimos, ushbu audioni tahlil qiling."
+    prompt = "Ovozli savol yuborildi. Iltimos, ushbu audioni tahlil qil."
 
 if prompt:
     inputs = [prompt]
-    
     if uploaded_image:
         img = Image.open(uploaded_image)
         inputs.append(img)
-    
     if uploaded_pdf:
         reader = PdfReader(uploaded_pdf)
         pdf_text = "".join([page.extract_text() for page in reader.pages[:3]])
-        inputs.append(f"Hujjat mazmuni: {pdf_text}")
+        inputs.append(f"PDF matni: {pdf_text}")
 
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
