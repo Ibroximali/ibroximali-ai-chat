@@ -74,7 +74,7 @@ username = st.session_state.username
 # 4. API VA MODEL (Informatika o'qituvchisi instruktsiyasi bilan)
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
+    model_name='gemini-2.5-flash',
     system_instruction="Siz informatika fani o'qituvchisisiz. Sanoq sistemalari bo'yicha masalalarni yechishda raqamlarni rasmda juda aniq tahlil qiling va o'nlik sanoq sistemasiga o'tkazish orqali tekshiring."
 )
 
