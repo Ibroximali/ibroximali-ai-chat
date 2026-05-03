@@ -6,7 +6,7 @@ from PIL import Image
 from pypdf import PdfReader
 from streamlit_mic_recorder import mic_recorder
 
-# 1. MA'LUMOTLAR BAZASI
+# 1. BAZA VA SAQLASH FUNKSIYALARI
 def init_db():
     conn = sqlite3.connect('chat_history_pro.db', check_same_thread=False)
     c = conn.cursor()
@@ -33,23 +33,29 @@ def load_messages(username):
 
 init_db()
 
-# 2. SAHIFA VA DIZAYN
-st.set_page_config(page_title="Ibroximali PRO AI", page_icon="🚀", layout="wide")
+# 2. SAHIFA SOZLAMALARI (MUAMMO TUZATILDI)
+st.set_page_config(page_title="DIAMOND AI", page_icon="🚀", layout="wide")
 
-# 3. LOGIN VA MUALLIFLIK
+st.markdown("""
+    <style>
+    /* MOBILDA YANGILANIB KETISHNI TO'XTATISH */
+    html, body, [data-testid="stAppViewContainer"] {
+        overscroll-behavior-y: contain;
+    }
+    /* Chat konteyneri balandligi */
+    .stChatMessage {
+        margin-bottom: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 3. LOGIN TIZIMI
 if "username" not in st.session_state:
-    st.title("🚀 Ibroximali PRO AI Assistant")
-    st.subheader("Men Soliyev Ibroximali tomonidan yaratilgan ko'p funksiyali shaxsiy botman.")
-    st.markdown("""
-    **Imkoniyatlarim:**
-    * 🖼️ Rasmlarni ko'rib tahlil qilish (Vision)
-    * 🎤 Ovozli buyruqlarni tushunish
-    * 📄 PDF darsliklar bilan ishlash
-    * 💾 Har bir foydalanuvchini eslab qolish
-    """)
+    st.title("🚀 DIAMOND AI")
+    st.subheader("Soliyev Ibroximali tomonidan yaratilgan shaxsiy yordamchi")
     
-    name = st.text_input("Davom etish uchun ismingizni kiriting:")
-    if st.button("Tizimga kirish") and name:
+    name = st.text_input("Ismingizni kiriting:", key="login_name")
+    if st.button("Kirish") and name:
         st.session_state.username = name
         st.session_state.messages = load_messages(name)
         st.rerun()
@@ -57,68 +63,53 @@ if "username" not in st.session_state:
 
 username = st.session_state.username
 
-# 4. API VA MODELLAR
+# 4. API VA SYSTEM INSTRUCTION (SANOQ SISTEMASI XATOSINI TUZATISH UCHUN)
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel('gemini-2.5-flash')
+# AI ga o'qituvchi rolini beramiz
+model = genai.GenerativeModel(
+    model_name='gemini-2.5-flash',
+    system_instruction="Siz tajribali informatika o'qituvchisisiz. Sanoq sistemalari (2, 8, 10, 16) ustidagi amallarni matematik aniqlikda, bosqichma-bosqich yechib berasiz. Rasmda raqamlarni juda diqqat bilan o'qing."
+)
 
-# 5. SIDEBAR - MULTIMEDIA FUNKSIYALARI
-st.sidebar.title(f"Xush kelibsiz, {username}!")
-st.sidebar.info("Yaratuvchi: **Soliyev Ibroximali**")
+# 5. SIDEBAR
+st.sidebar.title(f"Assalomu alaykum, {username}!")
+uploaded_image = st.sidebar.file_uploader("🖼️ Masalani rasmga olib yuklang", type=['png', 'jpg', 'jpeg'])
+uploaded_pdf = st.sidebar.file_uploader("📄 PDF darslik yuklang", type=['pdf'])
 
-st.sidebar.divider()
-st.sidebar.subheader("🎥 Multimedia")
-
-# Rasm yuklash (Vision)
-uploaded_image = st.sidebar.file_uploader("Rasm yuklang (Masala yechish)", type=['png', 'jpg', 'jpeg'])
-
-# PDF yuklash
-uploaded_pdf = st.sidebar.file_uploader("PDF darslik yuklang", type=['pdf'])
-
-# Ovozli buyruq
-st.sidebar.write("🎤 Ovozli xabar:")
-audio = mic_recorder(start_prompt="Yozishni boshlash", stop_prompt="To'xtatish", key='recorder')
-
-if st.sidebar.button("Tarixni tozalash"):
-    st.session_state.messages = []
+if st.sidebar.button("🔴 Tizimdan chiqish"):
+    del st.session_state.username
     st.rerun()
 
-# 6. CHAT OYNASI
+# 6. CHAT TARIXI
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 7. ASOSIY MANTIQ (INPUTLAR)
+# 7. OVOZLI VA MATNLI INPUT
+st.write("---")
+audio = mic_recorder(start_prompt="🎤 Ovozli savol", stop_prompt="🛑 To'xtatish", key='recorder')
 prompt = st.chat_input("Savolingizni yozing...")
 
-# Ovozni matnga aylantirish (Oddiyroq variant - matn sifatida qabul qilish)
 if audio:
-    prompt = "Ovozli xabar yuborildi (Hozircha matnli rejimda savol yozing)" # Kelajakda Whisper API ulanadi
+    prompt = "Ovozli xabar qabul qilindi. Iltimos, ushbu audioni tahlil qiling."
 
 if prompt:
-    context_text = prompt
     inputs = [prompt]
-
-    # PDF tahlili
-    if uploaded_pdf:
-        reader = PdfReader(uploaded_pdf)
-        pdf_text = ""
-        for page in reader.pages[:5]: # Birinchi 5 betni o'qiydi
-            pdf_text += page.extract_text()
-        inputs.append(f"\nPDF mazmuni: {pdf_text}")
-
-    # Rasm tahlili
+    
     if uploaded_image:
         img = Image.open(uploaded_image)
         inputs.append(img)
-        st.image(img, caption="Yuklangan rasm", width=300)
+    
+    if uploaded_pdf:
+        reader = PdfReader(uploaded_pdf)
+        pdf_text = "".join([page.extract_text() for page in reader.pages[:3]])
+        inputs.append(f"Hujjat mazmuni: {pdf_text}")
 
-    # Ko'rsatish va saqlash
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
     save_message(username, "user", prompt)
 
-    # AI JAVOBI
     try:
         with st.spinner("Ibroximali AI tahlil qilmoqda..."):
             response = model.generate_content(inputs)
@@ -129,10 +120,5 @@ if prompt:
         
         st.session_state.messages.append({"role": "assistant", "content": full_response})
         save_message(username, "assistant", full_response)
-        
     except Exception as e:
         st.error(f"Xatolik: {e}")
-
-if st.sidebar.button("Chiqish"):
-    del st.session_state.username
-    st.rerun()
